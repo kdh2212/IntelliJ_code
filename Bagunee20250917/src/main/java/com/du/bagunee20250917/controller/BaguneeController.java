@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class BaguneeController {
 
-    @GetMapping("/")
+    @GetMapping("/bagunee")
     public String bagunee() {
         return "bagunee";
     }
