@@ -1,4 +1,4 @@
-package com.du.reservation20250918.service;
+package com.du.reservation20250918.domain;
 
 import lombok.Data;
 

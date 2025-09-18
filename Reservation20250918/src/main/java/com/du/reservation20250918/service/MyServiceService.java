@@ -1,8 +1,9 @@
-package com.du.reservation.service;
+package com.du.reservation20250918.service;
 
 
-import com.du.reservation.mapper.ServiceMapper;
-import com.du.reservation.model.MyService;
+
+import com.du.reservation20250918.dao.ServiceMapper;
+import com.du.reservation20250918.domain.MyService;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 

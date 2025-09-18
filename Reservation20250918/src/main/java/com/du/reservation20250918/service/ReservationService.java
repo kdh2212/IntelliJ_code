@@ -1,8 +1,8 @@
-package com.du.reservation.service;
+package com.du.reservation20250918.service;
 
-import com.du.reservation.mapper.ReservationMapper;
-import com.du.reservation.model.Reservation;
-import com.du.reservation.model.ReservationItem;
+
+import com.du.reservation20250918.domain.Reservation;
+import com.du.reservation20250918.domain.ReservationItem;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 public class ReservationService {
     @Autowired
-    private ReservationMapper reservationMapper;
+    private com.du.reservation20250918.dao.ReservationMapper reservationMapper;
 
     public List<Reservation> getAllReservations() {
         return reservationMapper.findAll();

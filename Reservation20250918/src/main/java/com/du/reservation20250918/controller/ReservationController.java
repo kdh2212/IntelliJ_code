@@ -1,9 +1,10 @@
-package com.du.reservation.controller;
+package com.du.reservation20250918.controller;
 
-import com.du.reservation.model.Reservation;
-import com.du.reservation.model.ReservationItem;
-import com.du.reservation.service.MyServiceService;
-import com.du.reservation.service.ReservationService;
+
+import com.du.reservation20250918.domain.Reservation;
+import com.du.reservation20250918.domain.ReservationItem;
+import com.du.reservation20250918.service.MyServiceService;
+import com.du.reservation20250918.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;

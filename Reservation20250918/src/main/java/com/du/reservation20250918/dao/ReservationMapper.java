@@ -1,7 +1,8 @@
-package com.du.reservation.mapper;
+package com.du.reservation20250918.dao;
 
-import com.du.reservation.model.Reservation;
-import com.du.reservation.model.ReservationItem;
+
+import com.du.reservation20250918.domain.Reservation;
+import com.du.reservation20250918.domain.ReservationItem;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
