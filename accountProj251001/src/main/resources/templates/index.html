@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>MyWallet - 지출 관리</title>
+  <style>
+    :root {
+      --main-color: #00c49a;
+      --bg-color: #f8f9fa;
+      --text-color: #333;
+      --nav-bg: #ffffff;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+    }
+
+    /* 네비게이션 바 */
+    .navbar {
+      background-color: var(--nav-bg);
+      padding: 15px 0;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar a {
+      margin: 0 25px;
+      text-decoration: none;
+      color: var(--main-color);
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--main-color);
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .form-group input {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: var(--main-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #00a97f;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f1f1f1;
+    }
+
+    @media (max-width: 600px) {
+      .form-group {
+        flex-direction: column;
+      }
+
+      .form-group input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ✅ 상단 네비게이션 바 -->
+<div class="navbar">
+  <a href="#">지출 내역</a>
+  <a href="#">월별 통계</a>
+  <a href="#">맛집 리뷰</a>
+</div>
+
+<!-- ✅ 메인 컨테이너 -->
+<div class="container">
+  <h1>💰 MyWallet - 지출 입력</h1>
+
+  <div class="form-group">
+    <input type="date" id="date" />
+    <input type="number" id="amount" placeholder="금액" />
+    <input type="text" id="category" placeholder="카테고리 (예: 식비)" />
+    <input type="text" id="memo" placeholder="메모 (선택)" />
+    <button onclick="submitExpense()">지출 저장</button>
+  </div>
+
+  <h2 style="margin-top: 40px; color: #555;">📝 지출 내역</h2>
+  <table>
+    <thead>
+    <tr>
+      <th>날짜</th>
+      <th>금액</th>
+      <th>카테고리</th>
+      <th>메모</th>
+    </tr>
+    </thead>
+    <tbody id="expenseTableBody">
+    <!-- 지출 목록이 여기에 표시됩니다 -->
+    </tbody>
+  </table>
+</div>
+
+<!-- ✅ JavaScript -->
+<script>
+  const userId = 1;
+
+  async function fetchExpenses() {
+    const res = await fetch(`/expenses/user/${userId}`);
+    const data = await res.json();
+    const tbody = document.getElementById("expenseTableBody");
+    tbody.innerHTML = "";
+
+    data.forEach(expense => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+          <td>${expense.date}</td>
+          <td>${Number(expense.amount).toLocaleString()}원</td>
+          <td>${expense.category}</td>
+          <td>${expense.memo || ""}</td>
+        `;
+      tbody.appendChild(row);
+    });
+  }
+
+  async function submitExpense() {
+    const date = document.getElementById("date").value;
+    const amount = document.getElementById("amount").value;
+    const category = document.getElementById("category").value;
+    const memo = document.getElementById("memo").value;
+
+    if (!date || !amount || !category) {
+      alert("날짜, 금액, 카테고리를 모두 입력해주세요.");
+      return;
+    }
+
+    const newExpense = {
+      userId,
+      date,
+      amount,
+      category,
+      memo
+    };
+
+    const res = await fetch('/expenses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newExpense)
+    });
+
+    if (res.ok) {
+      alert("지출이 저장되었습니다!");
+      document.getElementById("date").value = "";
+      document.getElementById("amount").value = "";
+      document.getElementById("category").value = "";
+      document.getElementById("memo").value = "";
+      fetchExpenses();
+    } else {
+      alert("저장에 실패했습니다.");
+    }
+  }
+
+  fetchExpenses();
+</script>
+</body>
+</html>
