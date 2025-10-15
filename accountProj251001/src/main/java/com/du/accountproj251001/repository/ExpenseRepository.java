@@ -20,4 +20,5 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     // 🔍 특정 월 범위 내 지출 조회 (예: 2025년 10월)
     List<Expense> findByUserIdAndDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
 
+
 }

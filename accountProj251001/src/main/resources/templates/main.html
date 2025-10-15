@@ -1,0 +1,149 @@
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <title>MyWallet - 로그인 & 회원가입</title>
+        <style>
+            :root {
+                --main-color: #00c49a;
+                --bg-color: #f8f9fa;
+                --text-color: #333;
+            }
+
+            body {
+                font-family: 'Segoe UI', sans-serif;
+                background-color: var(--bg-color);
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            .container {
+                background-color: #fff;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+                max-width: 400px;
+                width: 100%;
+            }
+
+            h1 {
+                text-align: center;
+                color: var(--main-color);
+                margin-bottom: 30px;
+            }
+
+            form {
+                display: flex;
+                flex-direction: column;
+            }
+
+            input {
+                padding: 12px;
+                margin-bottom: 15px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 14px;
+            }
+
+            button {
+                padding: 12px;
+                background-color: var(--main-color);
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+                margin-bottom: 10px;
+            }
+
+            button:hover {
+                background-color: #00a97f;
+            }
+
+            .divider {
+                text-align: center;
+                margin: 20px 0;
+                color: #888;
+            }
+
+            @media (max-width: 480px) {
+                .container {
+                    margin: 20px;
+                    padding: 30px 20px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+
+    <div class="container">
+        <h1>💰 MyWallet</h1>
+
+        <!-- ✅ 로그인 폼 -->
+        <form id="loginForm">
+            <input type="text" id="loginUserId" placeholder="아이디" required />
+            <input type="password" id="loginPassword" placeholder="비밀번호" required />
+            <button type="submit">로그인</button>
+        </form>
+
+
+
+        <!-- ✅ 회원가입 버튼 폼 (페이지 이동) -->
+        <form action="/signup" method="get">
+            <button type="submit">회원가입</button>
+        </form>
+    </div>
+
+    <!-- ✅ JavaScript 예시 (기본 동작 차단 및 확인 메시지) -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const loginId = document.getElementById('loginUserId').value;
+            const password = document.getElementById('loginPassword').value;
+            //alert(`로그인 시도: ${username}`);
+
+
+
+            // 실제 로그인 API 연동 필요
+
+            // 실제 로그인 로직 (예시)
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loginId, password })
+            });
+
+            if (res.ok) {
+
+
+                alert('로그인 성공!');
+                window.location.href = '/index'; // ✅ 지출 관리 페이지로 이동
+            } else {
+                alert('로그인 실패. 아이디 또는 비밀번호를 확인하세요.');
+            }
+
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const loginId = document.getElementById('loginUserId').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+
+            if (password !== confirm) {
+                alert("비밀번호가 일치하지 않습니다.");
+                return;
+            }
+
+            // alert(`회원가입 시도: ${username}`);
+            // // 실제 회원가입 API 연동 필요
+        });
+    </script>
+
+    </body>
+    </html>

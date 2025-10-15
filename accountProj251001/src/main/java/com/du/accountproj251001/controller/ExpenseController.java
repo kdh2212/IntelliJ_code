@@ -14,22 +14,19 @@ import java.util.List;
 @RequestMapping("/expenses")
 @RequiredArgsConstructor
 public class ExpenseController {
-    private final ExpenseRepository expenseRepository;
 
-    // ✅ 전체 지출 내역 조회 (모든 사용자)
-    @GetMapping
-    public ResponseEntity<List<Expense>> getAllExpenses() {
-        return ResponseEntity.ok(expenseRepository.findAll());
-    }
+    private final ExpenseRepository expenseRepository;
 
     // ✅ 특정 사용자 지출 내역 조회
     @GetMapping("/user/{userId}")
+    @ResponseBody
     public ResponseEntity<List<Expense>> getExpensesByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(expenseRepository.findByUserId(userId));
     }
 
-    // ✅ 특정 사용자 + 월별 지출 조회 (예: 2025-10)
+    // ✅ 특정 사용자 + 월별 지출 조회
     @GetMapping("/user/{userId}/month")
+    @ResponseBody
     public ResponseEntity<List<Expense>> getMonthlyExpenses(
             @PathVariable Long userId,
             @RequestParam int year,
@@ -44,13 +41,15 @@ public class ExpenseController {
 
     // ✅ 지출 등록
     @PostMapping
+    @ResponseBody
     public ResponseEntity<Expense> createExpense(@RequestBody Expense expense) {
         Expense saved = expenseRepository.save(expense);
         return ResponseEntity.ok(saved);
     }
 
-    // ✅ 지출 단건 조회
+    // ✅ 지출 단건 조회 (수정화면에 필요)
     @GetMapping("/{id}")
+    @ResponseBody
     public ResponseEntity<Expense> getExpense(@PathVariable Long id) {
         return expenseRepository.findById(id)
                 .map(ResponseEntity::ok)
@@ -59,6 +58,7 @@ public class ExpenseController {
 
     // ✅ 지출 수정
     @PutMapping("/{id}")
+    @ResponseBody
     public ResponseEntity<Expense> updateExpense(
             @PathVariable Long id,
             @RequestBody Expense updatedExpense
@@ -77,6 +77,7 @@ public class ExpenseController {
 
     // ✅ 지출 삭제
     @DeleteMapping("/{id}")
+    @ResponseBody
     public ResponseEntity<Void> deleteExpense(@PathVariable Long id) {
         if (!expenseRepository.existsById(id)) {
             return ResponseEntity.notFound().build();

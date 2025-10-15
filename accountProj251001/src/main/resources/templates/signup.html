@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>회원가입 - MyWallet</title>
+    <style>
+        :root {
+            --main-color: #00c49a;
+            --bg-color: #fff; /* ✅ 배경색 흰색으로 변경 */
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color); /* ✅ 흰색 적용 */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #f8f9fa; /* ✅ 카드 부분은 약간의 회색톤 */
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--main-color);
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input {
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 12px;
+            background-color: var(--main-color);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #00a97f;
+        }
+
+        .back-btn {
+            background-color: #888;
+        }
+
+        .back-btn:hover {
+            background-color: #666;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>회원가입</h1>
+
+    <!-- ✅ 회원가입 폼 -->
+    <form id="signup">
+        <input type="text" id="signupUsername" name="username" placeholder="사용자 이름" required />
+        <input type="email" id="signupEmail" name="email" placeholder="이메일" required />
+        <input type="loginId" id="signupLoginId" name="loginId" placeholder="아이디" required />
+        <input type="password" id="signupPassword" name="password" placeholder="비밀번호" required />
+        <input type="password" id="signupConfirm" placeholder="비밀번호 확인" required />
+        <button type="submit">가입하기</button>
+    </form>
+
+    <!-- ✅ 로그인 화면으로 돌아가기 -->
+    <form action="/signupBack" method="get">
+        <button type="submit" class="back-btn">뒤로가기</button>
+    </form>
+</div>
+
+<!-- ✅ JS 로직 -->
+<script>
+    document.getElementById('signup').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const username = document.getElementById('signupUsername').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const loginId = document.getElementById('signupLoginId').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirm = document.getElementById('signupConfirm').value;
+
+        if (password !== confirm) {
+            alert("비밀번호가 일치하지 않습니다.");
+            return;
+        }
+
+        // ✅ 실제 API 연동 부분 (예시)
+        const user = { username, email, password ,loginId};
+
+        // 실제 백엔드 연동 시 아래 코드처럼 사용
+
+        fetch('/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert('회원가입 완료! 로그인 페이지로 이동합니다.');
+                    window.location.href = '/';  // ✅ 로그인 페이지(main.html)로 이동
+                } else {
+                    alert('회원가입 실패!');
+                }
+            })
+            .catch(err => alert('회원가입 실패: ' + err));
+
+
+        //alert(`회원가입 시도: ${username}`);
+    });
+</script>
+
+</body>
+</html>

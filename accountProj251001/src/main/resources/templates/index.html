@@ -19,7 +19,6 @@
       padding: 0;
     }
 
-    /* 네비게이션 바 */
     .navbar {
       background-color: var(--nav-bg);
       padding: 15px 0;
@@ -58,7 +57,8 @@
       margin-bottom: 20px;
     }
 
-    .form-group input {
+    .form-group input,
+    .form-group select {
       flex: 1;
       min-width: 120px;
       padding: 10px;
@@ -98,12 +98,41 @@
       background-color: #f1f1f1;
     }
 
+    #pagination {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #pagination button {
+      margin: 0 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+      border: 1px solid var(--main-color);
+      background-color: #fff;
+      color: var(--main-color);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    #pagination button.active {
+      background-color: var(--main-color);
+      color: #fff;
+      font-weight: bold;
+    }
+
+    #pagination button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
     @media (max-width: 600px) {
       .form-group {
         flex-direction: column;
       }
 
-      .form-group input {
+      .form-group input,
+      .form-group select {
         width: 100%;
       }
     }
@@ -111,21 +140,25 @@
 </head>
 <body>
 
-<!-- ✅ 상단 네비게이션 바 -->
 <div class="navbar">
   <a href="#">지출 내역</a>
   <a href="#">월별 통계</a>
   <a href="#">맛집 리뷰</a>
 </div>
 
-<!-- ✅ 메인 컨테이너 -->
 <div class="container">
   <h1>💰 MyWallet - 지출 입력</h1>
 
   <div class="form-group">
     <input type="date" id="date" />
     <input type="number" id="amount" placeholder="금액" />
-    <input type="text" id="category" placeholder="카테고리 (예: 식비)" />
+    <select id="category">
+      <option value="">카테고리 선택</option>
+      <option value="식비">식비</option>
+      <option value="교통비">교통비</option>
+      <option value="여가활동">여가활동</option>
+      <option value="기타">기타</option>
+    </select>
     <input type="text" id="memo" placeholder="메모 (선택)" />
     <button onclick="submitExpense()">지출 저장</button>
   </div>
@@ -138,34 +171,93 @@
       <th>금액</th>
       <th>카테고리</th>
       <th>메모</th>
+      <th>관리</th> <!-- ✅ 추가 -->
     </tr>
     </thead>
     <tbody id="expenseTableBody">
     <!-- 지출 목록이 여기에 표시됩니다 -->
     </tbody>
   </table>
+
+  <div id="pagination"></div>
 </div>
 
-<!-- ✅ JavaScript -->
 <script>
   const userId = 1;
+  const ITEMS_PER_PAGE = 5;
+  let currentPage = 1;
+  let allExpenses = [];
 
   async function fetchExpenses() {
     const res = await fetch(`/expenses/user/${userId}`);
-    const data = await res.json();
+    allExpenses = await res.json();
+    currentPage = 1;
+    renderTable();
+    renderPagination();
+  }
+
+  function renderTable() {
     const tbody = document.getElementById("expenseTableBody");
     tbody.innerHTML = "";
 
-    data.forEach(expense => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const currentItems = allExpenses.slice(start, end);
+
+    currentItems.forEach(expense => {
       const row = document.createElement("tr");
       row.innerHTML = `
-          <td>${expense.date}</td>
-          <td>${Number(expense.amount).toLocaleString()}원</td>
-          <td>${expense.category}</td>
-          <td>${expense.memo || ""}</td>
-        `;
+        <td>${expense.date}</td>
+        <td>${Number(expense.amount).toLocaleString()}원</td>
+        <td>${expense.category}</td>
+        <td>${expense.memo || ""}</td>
+        <td>
+          <button onclick="editExpense(${expense.id})">수정</button>
+          <button onclick="deleteExpense(${expense.id})">삭제</button>
+        </td>
+      `;
       tbody.appendChild(row);
     });
+  }
+
+  function renderPagination() {
+    const totalPages = Math.ceil(allExpenses.length / ITEMS_PER_PAGE);
+    const paginationContainer = document.getElementById("pagination");
+    paginationContainer.innerHTML = "";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "이전";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+      currentPage--;
+      renderTable();
+      renderPagination();
+    };
+    paginationContainer.appendChild(prevBtn);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const pageBtn = document.createElement("button");
+      pageBtn.textContent = i;
+      if (i === currentPage) {
+        pageBtn.classList.add("active");
+      }
+      pageBtn.onclick = () => {
+        currentPage = i;
+        renderTable();
+        renderPagination();
+      };
+      paginationContainer.appendChild(pageBtn);
+    }
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "다음";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+      currentPage++;
+      renderTable();
+      renderPagination();
+    };
+    paginationContainer.appendChild(nextBtn);
   }
 
   async function submitExpense() {
@@ -179,13 +271,7 @@
       return;
     }
 
-    const newExpense = {
-      userId,
-      date,
-      amount,
-      category,
-      memo
-    };
+    const newExpense = { userId, date, amount, category, memo };
 
     const res = await fetch('/expenses', {
       method: 'POST',
@@ -195,17 +281,83 @@
 
     if (res.ok) {
       alert("지출이 저장되었습니다!");
-      document.getElementById("date").value = "";
-      document.getElementById("amount").value = "";
-      document.getElementById("category").value = "";
-      document.getElementById("memo").value = "";
+      resetForm();
       fetchExpenses();
     } else {
       alert("저장에 실패했습니다.");
     }
   }
 
+  function editExpense(id) {
+    const expense = allExpenses.find(e => e.id === id);
+    if (!expense) return;
+
+    document.getElementById("date").value = expense.date;
+    document.getElementById("amount").value = expense.amount;
+    document.getElementById("category").value = expense.category;
+    document.getElementById("memo").value = expense.memo || "";
+
+    const saveBtn = document.querySelector(".form-group button");
+    saveBtn.textContent = "수정 저장";
+    saveBtn.onclick = () => updateExpense(id);
+  }
+
+  async function updateExpense(id) {
+    const date = document.getElementById("date").value;
+    const amount = document.getElementById("amount").value;
+    const category = document.getElementById("category").value;
+    const memo = document.getElementById("memo").value;
+
+    if (!date || !amount || !category) {
+      alert("날짜, 금액, 카테고리를 모두 입력해주세요.");
+      return;
+    }
+
+    const updatedExpense = { userId, date, amount, category, memo };
+
+    const res = await fetch(`/expenses/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedExpense)
+    });
+
+    if (res.ok) {
+      alert("지출이 수정되었습니다!");
+      resetForm();
+      fetchExpenses();
+    } else {
+      alert("수정에 실패했습니다.");
+    }
+  }
+
+  async function deleteExpense(id) {
+    if (!confirm("정말로 삭제하시겠습니까?")) return;
+
+    const res = await fetch(`/expenses/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (res.ok) {
+      alert("삭제되었습니다.");
+      fetchExpenses();
+    } else {
+      alert("삭제에 실패했습니다.");
+    }
+  }
+
+  function resetForm() {
+    document.getElementById("date").value = "";
+    document.getElementById("amount").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("memo").value = "";
+
+    const saveBtn = document.querySelector(".form-group button");
+    saveBtn.textContent = "지출 저장";
+    saveBtn.onclick = submitExpense;
+  }
+
   fetchExpenses();
 </script>
+
 </body>
 </html>
