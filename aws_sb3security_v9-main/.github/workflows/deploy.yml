@@ -1,0 +1,138 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-2
+  INSTANCE_NAME: sb3-security-instance
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify AWS credentials
+        run: |
+          aws sts get-caller-identity
+          aws configure list
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+      - name: Get EC2 Instance IP
+        id: get-ip
+        run: |
+          echo "Getting EC2 instance IP..."
+          IP=$(terraform output -raw public_ip)
+          echo "Instance IP: $IP"
+          echo "instance_ip=$IP" >> $GITHUB_OUTPUT
+
+      - name: Get Private Key
+        id: get-key
+        run: |
+          echo "Getting private key from Terraform..."
+          terraform output -raw private_key > id_rsa
+          chmod 600 id_rsa
+          echo "=== Private Key ==="
+          cat id_rsa
+
+      - name: Wait for SSH
+        run: |
+          echo "Waiting for EC2 instance to be ready..."
+          sleep 120
+          until nc -zv ${{ steps.get-ip.outputs.instance_ip }} 22; do
+            echo "Waiting for SSH to be available..."
+            sleep 10
+          done
+          echo "SSH is available"
+
+      - name: Test SSH Connection
+        run: |
+          echo "Testing SSH connection..."
+          # Debug: Show current directory and key file
+          pwd
+          ls -la id_rsa
+          
+          # Test SSH connection with verbose output
+          ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa ec2-user@${{ steps.get-ip.outputs.instance_ip }} "echo 'SSH connection successful'"
+
+      - name: Deploy Application
+        run: |
+          echo "Deploying application..."
+          ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa ec2-user@${{ steps.get-ip.outputs.instance_ip }} << 'EOF'
+            set -e
+            echo "=== Starting deployment process ==="
+            
+            # Install Java 17
+            echo "Installing Java 17..."
+            sudo dnf install -y java-17-amazon-corretto
+            java -version
+            
+            # Create application directory
+            echo "Creating application directory..."
+            sudo mkdir -p /opt/sb3-security
+            sudo chown ec2-user:ec2-user /opt/sb3-security
+            ls -la /opt/sb3-security
+            
+            # Create systemd service
+            echo "Creating systemd service..."
+            cat << 'SERVICE_EOF' | sudo tee /etc/systemd/system/sb3-security.service
+            [Unit]
+            Description=SB3 Security Application
+            After=network.target
+
+            [Service]
+            User=ec2-user
+            WorkingDirectory=/opt/sb3-security
+            ExecStart=/usr/bin/java -jar /opt/sb3-security/sb3-security.jar
+            SuccessExitStatus=143
+            TimeoutStopSec=10
+            Restart=on-failure
+            RestartSec=5
+
+            [Install]
+            WantedBy=multi-user.target
+            SERVICE_EOF
+            
+            # Verify service file
+            echo "Verifying service file..."
+            sudo cat /etc/systemd/system/sb3-security.service
+            
+            # Enable and start service
+            echo "Enabling and starting service..."
+            sudo systemctl daemon-reload
+            sudo systemctl enable sb3-security
+            sudo systemctl start sb3-security
+            
+            # Check service status
+            echo "Checking service status..."
+            sudo systemctl status sb3-security
+            
+            echo "=== Deployment completed ==="
+          EOF 
