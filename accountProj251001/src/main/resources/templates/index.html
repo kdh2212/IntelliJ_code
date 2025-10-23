@@ -21,17 +21,42 @@
 
     .navbar {
       background-color: var(--nav-bg);
-      padding: 15px 0;
-      text-align: center;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
-    .navbar a {
-      margin: 0 25px;
+    .nav-links a {
+      margin: 0 15px;
       text-decoration: none;
       color: var(--main-color);
       font-weight: bold;
       font-size: 18px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      color: #555;
+    }
+
+    .logout-btn {
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover {
+      background-color: #e35b5b;
     }
 
     .container {
@@ -141,9 +166,15 @@
 <body>
 
 <div class="navbar">
-  <a href="#">지출 내역</a>
-  <a href="#">월별 통계</a>
-  <a href="#">맛집 리뷰</a>
+  <div class="nav-links">
+    <a href="#">지출 내역</a>
+    <a href="#">월별 통계</a>
+    <a href="#">맛집 리뷰</a>
+  </div>
+  <div class="user-info">
+    <span id="usernameDisplay">로그인 중...</span>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
 </div>
 
 <div class="container">
@@ -171,19 +202,17 @@
       <th>금액</th>
       <th>카테고리</th>
       <th>메모</th>
-      <th>관리</th> <!-- ✅ 추가 -->
+      <th>관리</th>
     </tr>
     </thead>
-    <tbody id="expenseTableBody">
-    <!-- 지출 목록이 여기에 표시됩니다 -->
-    </tbody>
+    <tbody id="expenseTableBody"></tbody>
   </table>
 
   <div id="pagination"></div>
 </div>
 
 <script>
-  const userId = 1;
+  let userId = null;
   const ITEMS_PER_PAGE = 5;
   let currentPage = 1;
   let allExpenses = [];
@@ -194,6 +223,19 @@
     currentPage = 1;
     renderTable();
     renderPagination();
+  }
+
+  async function getUserSession() {
+    const res = await fetch('/api/session');
+    if (res.ok) {
+      const data = await res.json();
+      userId = data.userId;
+      document.getElementById("usernameDisplay").textContent = data.username || "사용자";
+      fetchExpenses();
+    } else {
+      alert("로그인이 필요합니다.");
+      window.location.href = "/";
+    }
   }
 
   function renderTable() {
@@ -238,9 +280,7 @@
     for (let i = 1; i <= totalPages; i++) {
       const pageBtn = document.createElement("button");
       pageBtn.textContent = i;
-      if (i === currentPage) {
-        pageBtn.classList.add("active");
-      }
+      if (i === currentPage) pageBtn.classList.add("active");
       pageBtn.onclick = () => {
         currentPage = i;
         renderTable();
@@ -272,7 +312,6 @@
     }
 
     const newExpense = { userId, date, amount, category, memo };
-
     const res = await fetch('/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -314,7 +353,6 @@
     }
 
     const updatedExpense = { userId, date, amount, category, memo };
-
     const res = await fetch(`/expenses/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -333,10 +371,7 @@
   async function deleteExpense(id) {
     if (!confirm("정말로 삭제하시겠습니까?")) return;
 
-    const res = await fetch(`/expenses/${id}`, {
-      method: 'DELETE'
-    });
-
+    const res = await fetch(`/expenses/${id}`, { method: 'DELETE' });
     if (res.ok) {
       alert("삭제되었습니다.");
       fetchExpenses();
@@ -356,7 +391,19 @@
     saveBtn.onclick = submitExpense;
   }
 
+  async function logout() {
+    if (!confirm("로그아웃 하시겠습니까?")) return;
+    const res = await fetch('/logout', { method: 'POST' });
+    if (res.ok) {
+      alert("로그아웃 되었습니다.");
+      window.location.href = "/";
+    } else {
+      alert("로그아웃에 실패했습니다.");
+    }
+  }
+
   fetchExpenses();
+  getUserSession();
 </script>
 
 </body>

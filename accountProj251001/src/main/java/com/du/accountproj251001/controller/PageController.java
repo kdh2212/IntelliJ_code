@@ -89,6 +89,7 @@ public class PageController {
         // 여기서는 예시로 사용자 ID(pk)와 로그인 ID를 저장합니다.
         session.setAttribute("USER_ID", user.getId());        // DB의 기본 키 (Primary Key)
         session.setAttribute("LOGIN_ID", user.getLoginId());  // 로그인에 사용된 ID
+        session.setAttribute("USERNAME", user.getUsername());
 
         // 세션의 만료 시간 설정 (예: 3600초 = 1시간)
         session.setMaxInactiveInterval(3600);
@@ -97,6 +98,41 @@ public class PageController {
 
         // 로그인 성공: 상태 코드 200 OK와 함께 메시지 반환
         return ResponseEntity.ok("로그인 성공");
+    }
+
+    @PostMapping("/logout")
+    @ResponseBody
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);  // 기존 세션 가져오기 (없으면 null)
+        if (session != null) {
+            session.invalidate();  // 세션 무효화 (로그아웃)
+        }
+        return ResponseEntity.ok(Collections.singletonMap("message", "로그아웃 성공"));
+    }
+
+    @GetMapping("/api/session")
+    @ResponseBody
+    public ResponseEntity<?> getSessionUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 필요");
+        }
+        Long userId = (Long) session.getAttribute("USER_ID");
+        String loginId = (String) session.getAttribute("LOGIN_ID");
+        String username = (String) session.getAttribute("USERNAME");
+
+        if (userId == null || loginId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 정보 없음");
+        }
+
+        Map<String, Object> response = Map.of(
+                "userId", userId,
+                "loginId", loginId,
+                "username", username
+
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 }
