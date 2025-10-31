@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JWT 시각화 테스트</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>JWT 로그인 & 내부 구조 시각화</h2>
+
+    <!-- 로그인 -->
+    <div class="mb-3">
+        <label for="username" class="form-label">Username:</label>
+        <input type="text" id="username" class="form-control" placeholder="Enter username">
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password:</label>
+        <input type="password" id="password" class="form-control" placeholder="Enter password">
+    </div>
+    <button class="btn btn-primary mb-3" onclick="login()">로그인</button>
+
+    <!-- 발급 토큰 -->
+    <div class="mb-3">
+        <label for="token" class="form-label">JWT Token:</label>
+        <textarea id="token" class="form-control" rows="3" readonly></textarea>
+    </div>
+
+    <!-- 검증 -->
+    <div class="mb-3">
+        <button class="btn btn-success mb-3" onclick="validateToken()">토큰 검증</button>
+    </div>
+    <div class="mb-3">
+        <label for="validationResult" class="form-label">검증 결과:</label>
+        <textarea id="validationResult" class="form-control" rows="2" readonly></textarea>
+    </div>
+
+    <hr>
+
+    <!-- JWT 시각화 -->
+    <h4>JWT 내부 구조</h4>
+    <div class="mb-3">
+        <label class="form-label">Header:</label>
+        <pre id="jwtHeader" class="border p-2 bg-light"></pre>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Payload:</label>
+        <pre id="jwtPayload" class="border p-2 bg-light"></pre>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Signature:</label>
+        <pre id="jwtSignature" class="border p-2 bg-light"></pre>
+    </div>
+</div>
+
+<script>
+    const apiBase = "/api";
+
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+            alert("Username과 Password를 입력하세요!");
+            return;
+        }
+
+        fetch(`${apiBase}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.token) {
+                    const token = data.token;
+                    document.getElementById('token').value = token;
+                    alert(`로그인 성공! Username: ${data.username}`);
+                    visualizeJWT(token); // 토큰 시각화
+                } else {
+                    document.getElementById('token').value = "";
+                    alert("로그인 실패: " + data.error);
+                    clearVisualization();
+                }
+            });
+    }
+
+    function validateToken() {
+        const token = document.getElementById('token').value;
+
+        if (!token) {
+            alert("먼저 로그인하여 토큰을 발급받으세요!");
+            return;
+        }
+
+        fetch(`${apiBase}/validate?token=${token}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('validationResult').value =
+                    data.valid ? `토큰 유효! username: ${data.username}` : "토큰이 유효하지 않음";
+            });
+    }
+
+    function visualizeJWT(token) {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            clearVisualization();
+            return;
+        }
+
+        const decodeBase64 = str => {
+            try {
+                return JSON.stringify(JSON.parse(atob(str)), null, 2);
+            } catch (e) {
+                return "디코딩 실패";
+            }
+        };
+
+        document.getElementById('jwtHeader').innerText = decodeBase64(parts[0]);
+        document.getElementById('jwtPayload').innerText = decodeBase64(parts[1]);
+        document.getElementById('jwtSignature').innerText = parts[2];
+    }
+
+    function clearVisualization() {
+        document.getElementById('jwtHeader').innerText = "";
+        document.getElementById('jwtPayload').innerText = "";
+        document.getElementById('jwtSignature').innerText = "";
+    }
+</script>
+</body>
+</html>
