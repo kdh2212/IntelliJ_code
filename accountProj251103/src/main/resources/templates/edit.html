@@ -1,0 +1,178 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="ko">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8" />-->
+<!--  <title>지출 수정 - MyWallet</title>-->
+<!--  <style>-->
+<!--    :root {-->
+<!--      &#45;&#45;main-color: #00c49a;-->
+<!--      &#45;&#45;bg-color: #f8f9fa;-->
+<!--      &#45;&#45;text-color: #333;-->
+<!--    }-->
+
+<!--    body {-->
+<!--      font-family: 'Segoe UI', sans-serif;-->
+<!--      background-color: var(&#45;&#45;bg-color);-->
+<!--      color: var(&#45;&#45;text-color);-->
+<!--      margin: 0;-->
+<!--      padding: 0;-->
+<!--    }-->
+
+<!--    .container {-->
+<!--      max-width: 600px;-->
+<!--      margin: 80px auto;-->
+<!--      padding: 30px;-->
+<!--      background-color: white;-->
+<!--      border-radius: 12px;-->
+<!--      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);-->
+<!--    }-->
+
+<!--    h2 {-->
+<!--      color: var(&#45;&#45;main-color);-->
+<!--      text-align: center;-->
+<!--      margin-bottom: 30px;-->
+<!--    }-->
+
+<!--    .form-group {-->
+<!--      margin-bottom: 20px;-->
+<!--    }-->
+
+<!--    .form-group label {-->
+<!--      display: block;-->
+<!--      margin-bottom: 8px;-->
+<!--      font-weight: bold;-->
+<!--    }-->
+
+<!--    .form-group input,-->
+<!--    .form-group select {-->
+<!--      width: 100%;-->
+<!--      padding: 10px;-->
+<!--      border: 1px solid #ccc;-->
+<!--      border-radius: 6px;-->
+<!--      font-size: 14px;-->
+<!--    }-->
+
+<!--    .btn-group {-->
+<!--      text-align: center;-->
+<!--      margin-top: 30px;-->
+<!--    }-->
+
+<!--    button {-->
+<!--      padding: 10px 20px;-->
+<!--      font-size: 14px;-->
+<!--      border: none;-->
+<!--      border-radius: 6px;-->
+<!--      cursor: pointer;-->
+<!--      transition: 0.3s;-->
+<!--    }-->
+
+<!--    .btn-submit {-->
+<!--      background-color: var(&#45;&#45;main-color);-->
+<!--      color: white;-->
+<!--      margin-right: 10px;-->
+<!--    }-->
+
+<!--    .btn-submit:hover {-->
+<!--      background-color: #00a97f;-->
+<!--    }-->
+
+<!--    .btn-cancel {-->
+<!--      background-color: #ccc;-->
+<!--      color: #333;-->
+<!--    }-->
+
+<!--    .btn-cancel:hover {-->
+<!--      background-color: #aaa;-->
+<!--    }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<div class="container">-->
+<!--  <h2>✏️ 지출 수정</h2>-->
+
+<!--  <form id="editForm">-->
+<!--    <div class="form-group">-->
+<!--      <label for="date">날짜</label>-->
+<!--      <input type="date" id="date" required />-->
+<!--    </div>-->
+
+<!--    <div class="form-group">-->
+<!--      <label for="amount">금액</label>-->
+<!--      <input type="number" id="amount" required />-->
+<!--    </div>-->
+
+<!--    <div class="form-group">-->
+<!--      <label for="category">카테고리</label>-->
+<!--      <select id="category" required>-->
+<!--        <option value="">선택하세요</option>-->
+<!--        <option value="식비">식비</option>-->
+<!--        <option value="교통비">교통비</option>-->
+<!--        <option value="여가활동">여가활동</option>-->
+<!--        <option value="기타">기타</option>-->
+<!--      </select>-->
+<!--    </div>-->
+
+<!--    <div class="form-group">-->
+<!--      <label for="memo">메모</label>-->
+<!--      <input type="text" id="memo" placeholder="선택 사항" />-->
+<!--    </div>-->
+
+<!--    <div class="btn-group">-->
+<!--      <button type="submit" class="btn-submit">수정 완료</button>-->
+<!--      <button type="button" class="btn-cancel" onclick="history.back()">취소</button>-->
+<!--    </div>-->
+<!--  </form>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--  const expenseId = new URLSearchParams(location.search).get('id');-->
+
+<!--  // 기존 데이터 불러오기-->
+<!--  async function loadExpenseData() {-->
+<!--    const res = await fetch(`/expenses/${expenseId}`);-->
+<!--    if (!res.ok) {-->
+<!--      alert("데이터를 불러올 수 없습니다.");-->
+<!--      return;-->
+<!--    }-->
+
+<!--    const expense = await res.json();-->
+<!--    document.getElementById("date").value = expense.date;-->
+<!--    document.getElementById("amount").value = expense.amount;-->
+<!--    document.getElementById("category").value = expense.category;-->
+<!--    document.getElementById("memo").value = expense.memo || "";-->
+<!--  }-->
+
+<!--  // 수정 요청-->
+<!--  document.getElementById("editForm").addEventListener("submit", async (e) => {-->
+<!--    e.preventDefault();-->
+
+<!--    const updatedExpense = {-->
+<!--      date: document.getElementById("date").value,-->
+<!--      amount: document.getElementById("amount").value,-->
+<!--      category: document.getElementById("category").value,-->
+<!--      memo: document.getElementById("memo").value-->
+<!--    };-->
+
+<!--    const res = await fetch(`/expenses/${expenseId}`, {-->
+<!--      method: "PUT",-->
+<!--      headers: {-->
+<!--        "Content-Type": "application/json"-->
+<!--      },-->
+<!--      body: JSON.stringify(updatedExpense)-->
+<!--    });-->
+
+<!--    if (res.ok) {-->
+<!--      alert("수정이 완료되었습니다.");-->
+<!--      location.href = "/"; // 홈 또는 리스트 페이지로 리다이렉트-->
+<!--    } else {-->
+<!--      alert("수정에 실패했습니다.");-->
+<!--    }-->
+<!--  });-->
+
+<!--  // 초기 실행-->
+<!--  loadExpenseData();-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
